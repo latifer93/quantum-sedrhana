@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengacakan Ayat Al-Qur'an</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        input, select {
+            padding: 5px;
+            margin: 5px;
+            width: 150px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 30px;
+            font-size: 20px;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>QUANTUM TAHFIDZ</h1>
+    <div>
+        <label for="startJuz">Juz Mulai:</label>
+        <select id="startJuz">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+        </select>
+    </div>
+    <div>
+        <label for="endJuz">Juz Akhir:</label>
+        <select id="endJuz">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+        </select>
+    </div>
+    <div>
+        <label for="startSurah">Surah Mulai:</label>
+        <select id="startSurah">
+            <option value="Al-Fatihah">Al-Fatihah</option>
+            <option value="Al-Baqarah">Al-Baqarah</option>
+            <option value="Ali Imran">Ali Imran</option>
+            <option value="An-Nisa">An-Nisa</option>
+        </select>
+    </div>
+    <div>
+        <label for="endSurah">Surah Akhir:</label>
+        <select id="endSurah">
+            <option value="Al-Fatihah">Al-Fatihah</option>
+            <option value="Al-Baqarah">Al-Baqarah</option>
+            <option value="Ali Imran">Ali Imran</option>
+            <option value="An-Nisa">An-Nisa</option>
+        </select>
+    </div>
+    <div>
+        <label for="startAyat">Ayat Mulai:</label>
+        <input type="number" id="startAyat" placeholder="Contoh: 1">
+    </div>
+    <div>
+        <label for="endAyat">Ayat Akhir:</label>
+        <input type="number" id="endAyat" placeholder="Contoh: 252">
+    </div>
+    <button onclick="acakAyat()">Acak Ayat</button>
+    <div id="result">
+        <!-- Hasil pengacakan akan muncul di sini -->
+    </div>
+    <div id="summary" style="margin-top: 20px;">
+        <!-- Ringkasan jumlah ayat akan muncul di sini -->
+    </div>
+
+    <script>
+        const surahData = [
+            { surah: "Al-Fatihah", start: 1, end: 7, juz: 1 },
+            { surah: "Al-Baqarah", start: 1, end: 286, juz: 3 },
+            { surah: "Ali Imran", start: 1, end: 200, juz: 4 },
+            { surah: "An-Nisa", start: 1, end: 176, juz: 5 },
+        ];
+
+        let ayatTeracak = [];
+
+        function acakAyat() {
+            const startJuz = parseInt(document.getElementById("startJuz").value);
+            const endJuz = parseInt(document.getElementById("endJuz").value);
+            const startSurah = document.getElementById("startSurah").value;
+            const endSurah = document.getElementById("endSurah").value;
+            const startAyat = parseInt(document.getElementById("startAyat").value);
+            const endAyat = parseInt(document.getElementById("endAyat").value);
+
+            if (startJuz > endJuz) {
+                document.getElementById("result").innerHTML = `<p style="color:red;">Harap pilih rentang juz yang valid!</p>`;
+                return;
+            }
+
+            const startSurahIndex = surahData.findIndex(s => s.surah === startSurah);
+            const endSurahIndex = surahData.findIndex(s => s.surah === endSurah);
+
+            if (startSurahIndex > endSurahIndex) {
+                document.getElementById("result").innerHTML = `<p style="color:red;">Harap pilih rentang surah yang valid!</p>`;
+                return;
+            }
+
+            if (startAyat > endAyat || isNaN(startAyat) || isNaN(endAyat)) {
+                document.getElementById("result").innerHTML = `<p style="color:red;">Harap masukkan rentang ayat yang valid!</p>`;
+                return;
+            }
+
+            const validAyat = surahData.slice(startSurahIndex, endSurahIndex + 1).map(s => {
+                return {
+                    surah: s.surah,
+                    start: Math.max(s.start, startAyat),
+                    end: Math.min(s.end, endAyat),
+                    juz: s.juz
+                };
+            }).filter(s => s.start <= s.end && s.juz >= startJuz && s.juz <= endJuz);
+
+            if (!validAyat.length) {
+                document.getElementById("result").innerHTML = `<p style="color:red;">Data tidak ditemukan untuk rentang ini!</p>`;
+                document.getElementById("summary").innerHTML = `
+                    <p>Jumlah soal: ${ayatTeracak.length}</p>
+                    <p>Sisa: 0</p>
+                `;
+                return;
+            }
+
+            const ayatRange = [];
+            validAyat.forEach(s => {
+                for (let i = s.start; i <= s.end; i++) {
+                    if (!ayatTeracak.some(a => a.ayat === i && a.surah === s.surah)) {
+                        ayatRange.push({ ayat: i, surah: s.surah, juz: s.juz });
+                    }
+                }
+            });
+
+            if (!ayatRange.length) {
+                document.getElementById("result").innerHTML = `<p style="color:red;">Tidak ada ayat yang cocok dalam rentang ini!</p>`;
+                document.getElementById("summary").innerHTML = `
+                    <p>Jumlah soal: ${ayatTeracak.length}</p>
+                    <p>Sisa: 0</p>
+                `;
+                return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * ayatRange.length);
+            const randomAyat = ayatRange[randomIndex];
+
+            ayatTeracak.push(randomAyat);
+
+            document.getElementById("result").innerHTML = `
+                <p>Ayat: ${randomAyat.ayat}</p>
+                <p>Surah: ${randomAyat.surah}</p>
+                <p>Juz: ${randomAyat.juz}</p>
+            `;
+
+            document.getElementById("summary").innerHTML = `
+                <p>Jumlah soal: ${ayatTeracak.length}</p>
+                <p>Sisa: ${ayatRange.length - 1}</p>
+            `;
+        }
+    </script>
+</body>
+</html>
